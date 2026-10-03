@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Retro Pong</string>
+
+    <string name="menu_play">खेलें</string>
+    <string name="menu_settings">सेटिंग्स</string>
+    <string name="menu_best_rally">सर्वश्रेष्ठ रैली: %1$d</string>
+    <string name="menu_wins">जीत: %1$d</string>
+
+    <string name="game_ai_score">AI  %1$d</string>
+    <string name="game_you_score">आप  %1$d</string>
+    <string name="game_rally">रैली: %1$d</string>
+    <string name="game_tap_to_start">शुरू करने के लिए टैप करें या खींचें</string>
+    <string name="game_pause">रोकें</string>
+    <string name="game_paused">रुका हुआ</string>
+    <string name="game_resume">जारी रखें</string>
+    <string name="game_restart">फिर से शुरू करें</string>
+    <string name="game_play_again">फिर से खेलें</string>
+    <string name="game_menu">मुख्य मेनू</string>
+    <string name="game_you_win">आप जीत गए!</string>
+    <string name="game_you_lose">आप हार गए</string>
+    <string name="game_field_description">खेल का मैदान। आप %1$d, AI %2$d</string>
+
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="settings_difficulty">कठिनाई</string>
+    <string name="settings_sound">ध्वनि</string>
+    <string name="settings_back">वापस</string>
+    <string name="difficulty_easy">आसान</string>
+    <string name="difficulty_medium">मध्यम</string>
+    <string name="difficulty_hard">कठिन</string>
+</resources>
