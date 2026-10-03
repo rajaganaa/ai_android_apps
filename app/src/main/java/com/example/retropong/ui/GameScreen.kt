@@ -41,20 +41,21 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.example.retropong.R
 import com.example.retropong.game.GameState
 import com.example.retropong.game.Phase
+import kotlin.math.ceil
 
 @Composable
 fun GameScreen(viewModel: GameViewModel, onExit: () -> Unit) {
     val state by viewModel.state.collectAsState()
     val s = state
-    val playing = s?.phase == Phase.PLAYING
+    val running = s?.phase == Phase.PLAYING || s?.phase == Phase.COUNTDOWN
 
     // Pause automatically when the app goes to the background
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { viewModel.pause() }
-    BackHandler { if (playing) viewModel.pause() else onExit() }
+    BackHandler { if (running) viewModel.pause() else onExit() }
 
-    // Game loop: runs once per display frame, only while playing
-    LaunchedEffect(playing) {
-        if (!playing) return@LaunchedEffect
+    // Game loop: runs once per display frame, while playing or counting down
+    LaunchedEffect(running) {
+        if (!running) return@LaunchedEffect
         var last = 0L
         while (true) {
             withFrameNanos { now ->
@@ -122,7 +123,16 @@ fun GameScreen(viewModel: GameViewModel, onExit: () -> Unit) {
                     modifier = Modifier.align(Alignment.Center).padding(top = 120.dp)
                 )
             }
-            if (s.phase == Phase.PLAYING) {
+            if (s.phase == Phase.COUNTDOWN) {
+                val count = ceil(s.countdown).toInt().coerceIn(1, 3)
+                HudText(
+                    text = count.toString(),
+                    color = Color.Yellow,
+                    size = 72,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            if (s.phase == Phase.PLAYING || s.phase == Phase.COUNTDOWN) {
                 TextButton(
                     onClick = viewModel::pause,
                     modifier = Modifier

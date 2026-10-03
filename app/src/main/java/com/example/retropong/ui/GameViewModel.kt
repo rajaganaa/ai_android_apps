@@ -47,12 +47,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun resume() = update { engine.resume(it) }
 
     fun onDrag(dx: Float) = update {
-        if (it.phase == Phase.PLAYING || it.phase == Phase.READY) engine.movePlayer(it, dx) else it
+        if (it.phase == Phase.PLAYING || it.phase == Phase.READY || it.phase == Phase.COUNTDOWN) {
+            engine.movePlayer(it, dx)
+        } else it
     }
 
     fun onTick(dtSeconds: Float) {
         val current = _state.value ?: return
-        if (current.phase != Phase.PLAYING) return
+        if (current.phase != Phase.PLAYING && current.phase != Phase.COUNTDOWN) return
         val result = engine.step(current, dtSeconds, settings.value.difficulty)
         _state.value = result.state
         result.events.forEach { handle(it, result.state) }

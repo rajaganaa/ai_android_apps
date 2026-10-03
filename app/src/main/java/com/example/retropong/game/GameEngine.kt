@@ -5,7 +5,7 @@ import kotlin.random.Random
 
 /** Pure Kotlin game logic. No Android classes, so it is fast to unit test. */
 
-enum class Phase { READY, PLAYING, PAUSED, GAME_OVER }
+enum class Phase { READY, COUNTDOWN, PLAYING, PAUSED, GAME_OVER }
 
 enum class Difficulty(val aiSpeed: Float) {
     EASY(0.25f),
@@ -27,7 +27,8 @@ data class GameState(
     val playerScore: Int = 0,
     val aiScore: Int = 0,
     val rally: Int = 0,
-    val phase: Phase = Phase.READY
+    val phase: Phase = Phase.READY,
+    val countdown: Float = 0f
 ) {
     val paddleW: Float get() = width * 0.25f
     val paddleH: Float get() = width * 0.03f
@@ -42,6 +43,7 @@ class GameEngine(private val random: Random = Random.Default) {
 
     companion object {
         const val WIN_SCORE = 5
+        const val COUNTDOWN_SECONDS = 3.0f
         private const val SPEED_UP = 1.05f
         private const val MAX_SPEED = 1.2f      // x screen height per second
         private const val SERVE_SPEED = 0.40f   // x screen height per second
@@ -65,13 +67,22 @@ class GameEngine(private val random: Random = Random.Default) {
             ballY = s.height / 2,
             vx = direction * s.width * 0.25f,
             vy = (if (towardPlayer) 1f else -1f) * s.height * SERVE_SPEED,
-            phase = Phase.READY
+            phase = Phase.READY,
+            countdown = 0f
         )
     }
 
-    fun start(s: GameState) = if (s.phase == Phase.READY) s.copy(phase = Phase.PLAYING) else s
-    fun pause(s: GameState) = if (s.phase == Phase.PLAYING) s.copy(phase = Phase.PAUSED) else s
-    fun resume(s: GameState) = if (s.phase == Phase.PAUSED) s.copy(phase = Phase.PLAYING) else s
+    fun start(s: GameState) = if (s.phase == Phase.READY) {
+        s.copy(phase = Phase.COUNTDOWN, countdown = COUNTDOWN_SECONDS)
+    } else s
+
+    fun pause(s: GameState) = if (s.phase == Phase.PLAYING || s.phase == Phase.COUNTDOWN) {
+        s.copy(phase = Phase.PAUSED)
+    } else s
+
+    fun resume(s: GameState) = if (s.phase == Phase.PAUSED) {
+        if (s.countdown > 0f) s.copy(phase = Phase.COUNTDOWN) else s.copy(phase = Phase.PLAYING)
+    } else s
 
     fun movePlayer(s: GameState, dx: Float): GameState {
         val half = s.paddleW / 2
@@ -80,7 +91,18 @@ class GameEngine(private val random: Random = Random.Default) {
 
     /** Advances the game by [dt] seconds. Returns the new state and what happened. */
     fun step(s: GameState, dt: Float, difficulty: Difficulty): StepResult {
-        if (s.phase != Phase.PLAYING || dt <= 0f) return StepResult(s, emptyList())
+        if (dt <= 0f) return StepResult(s, emptyList())
+
+        if (s.phase == Phase.COUNTDOWN) {
+            val remaining = s.countdown - dt
+            return if (remaining <= 0f) {
+                StepResult(s.copy(phase = Phase.PLAYING, countdown = 0f), emptyList())
+            } else {
+                StepResult(s.copy(countdown = remaining), emptyList())
+            }
+        }
+
+        if (s.phase != Phase.PLAYING) return StepResult(s, emptyList())
 
         val events = mutableListOf<GameEvent>()
         val r = s.ballR
