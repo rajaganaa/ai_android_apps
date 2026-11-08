@@ -24,11 +24,23 @@ jobs:
           java-version: 25
 
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: clipsaver
 
       - name: Make gradlew executable
         run: chmod +x gradlew
+
+      - name: Warm Gradle wrapper (retry on transient download failures)
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if ./gradlew --version; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "Gradle wrapper bootstrap failed after ${attempt} attempts."
+              exit 1
+            fi
+            echo "Gradle wrapper bootstrap failed (attempt ${attempt}). Retrying in 20s..."
+            sleep 20
+          done
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
