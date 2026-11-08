@@ -42,9 +42,18 @@ jobs:
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
+        
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          printf '%s' "$KS_B64" | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/upload.jks"
+          ls -l "$RUNNER_TEMP/upload.jks"
+          echo "password length: ${#KEYSTORE_PASSWORD}"
+          keytool -list -keystore "$RUNNER_TEMP/upload.jks" -storepass "$KEYSTORE_PASSWORD" | head -5
+          
 
       - name: Build release APK
         run: ./gradlew assembleRelease
