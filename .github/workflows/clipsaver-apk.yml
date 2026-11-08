@@ -24,26 +24,11 @@ jobs:
           java-version: 25
 
       - uses: gradle/actions/setup-gradle@v4
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      - name: Warm Gradle wrapper (retry on transient download failures)
-        run: |
-          for attempt in 1 2 3 4 5; do
-            if ./gradlew --version; then
-              exit 0
-            fi
-            if [ "$attempt" -eq 5 ]; then
-              echo "Gradle wrapper bootstrap failed after ${attempt} attempts."
-              exit 1
-            fi
-            echo "Gradle wrapper bootstrap failed (attempt ${attempt}). Retrying in 20s..."
-            sleep 20
-          done
+        with:
+          gradle-version: 9.6.0
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+        run: gradle testDebugUnitTest
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
@@ -54,7 +39,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: gradle assembleRelease
 
       - name: Keep the APK as a build artifact
         uses: actions/upload-artifact@v4
