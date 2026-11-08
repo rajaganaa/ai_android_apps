@@ -38,6 +38,7 @@ jobs:
               echo "Gradle wrapper bootstrap failed after ${attempt} attempts."
               exit 1
             fi
+            rm -rf "$HOME/.gradle/wrapper/dists/gradle-9.6.0-bin"
             echo "Gradle wrapper bootstrap failed (attempt ${attempt}). Retrying in 20s..."
             sleep 20
           done
